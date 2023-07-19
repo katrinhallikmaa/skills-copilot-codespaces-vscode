@@ -1,35 +1,70 @@
 // create web server with express
+// http://expressjs.com/en/starter/hello-world.html
 const express = require('express');
 const app = express();
-// create web server with express
+const port = 3000;
+const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
-const fs = require('fs');
-const commentsPath = path.join(__dirname, '../data/comments.json');
-// const comments = require('../data/comments.json');
-const { v4: uuidv4 } = require('uuid');
-// const { getComments, getComment, saveComment, updateComment, deleteComment } = require('../controllers/commentsController');
-const { getComments, getComment, saveComment, updateComment, deleteComment } = require('../controllers/commentsController');
 
-// middleware
-// parse application/x-www-form-urlencoded
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
-// parse application/json
 app.use(bodyParser.json());
 
-// GET /comments
-app.get('/', getComments);
+const comments = [
+    {
+        id: 1,
+        name: 'John',
+        message: 'Hello world'
+    },
+    {
+        id: 2,
+        name: 'Jane',
+        message: 'Hi, there'
+    }
+];
 
-// GET /comments/:id
-app.get('/:id', getComment);
+// GET /comments
+app.get('/comments', (req, res) => {
+    res.json(comments);
+});
 
 // POST /comments
-app.post('/', saveComment);
+app.post('/comments', (req, res) => {
+    const comment = req.body;
+    comment.id = comments.length + 1;
+    comments.push(comment);
+    res.json(comment);
+});
 
 // PUT /comments/:id
-app.put('/:id', updateComment);
+app.put('/comments/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = comments.findIndex(comment => comment.id === id);
+    if (index !== -1) {
+        comments[index] = req.body;
+        comments[index].id = id;
+        res.json(comments[index]);
+    } else {
+        res.status(404).json({
+            error: `Comment with id ${id} not found`
+        });
+    }
+});
 
 // DELETE /comments/:id
-app.delete('/:id', deleteComment);
+app.delete('/comments/:id', (req, res) => {
+    const id = parseInt(req.params.id);
+    const index = comments.findIndex(comment => comment.id === id);
+    if (index !== -1) {
+        const comment = comments.splice(index, 1);
+        res.json(comment);
+    } else {
+        res.status(404).json({
+            error: `Comment with id ${id} not found`
+        });
+    }
+});
 
-module.exports = app;
+app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+
+
